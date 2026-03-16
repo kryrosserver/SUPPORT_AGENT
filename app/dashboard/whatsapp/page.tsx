@@ -333,7 +333,7 @@ export default function WhatsAppPage() {
                 className="mt-4 text-sm text-center"
                 style={{ color: '#6B7280' }}
               >
-                Open WhatsApp on your phone, go to Settings > Linked Devices > Link a Device
+                Open WhatsApp on your phone, go to Settings &gt; Linked Devices &gt; Link a Device
               </p>
             </div>
           ) : (
@@ -387,7 +387,7 @@ export default function WhatsAppPage() {
           <li>Click the "Connect WhatsApp" button above</li>
           <li>Wait for the QR code to appear</li>
           <li>Open WhatsApp on your phone</li>
-          <li>Go to Settings > Linked Devices > Link a Device</li>
+          <li>Go to Settings &gt; Linked Devices &gt; Link a Device</li>
           <li>Scan the QR code with your phone</li>
           <li>Once connected, incoming messages will appear in the Inbox</li>
         </ol>
