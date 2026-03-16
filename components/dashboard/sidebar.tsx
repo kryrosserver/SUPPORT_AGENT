@@ -11,6 +11,7 @@ import {
   MessageCircle,
   Settings,
   LogOut,
+  UserCog,
 } from 'lucide-react'
 
 interface User {
@@ -28,6 +29,10 @@ const navItems = [
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ]
 
+const adminNavItems = [
+  { href: '/dashboard/users', label: 'Users', icon: UserCog },
+]
+
 export function DashboardSidebar({ user }: { user: User }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -43,6 +48,8 @@ export function DashboardSidebar({ user }: { user: User }) {
     }
     return pathname.startsWith(href)
   }
+
+  const isSuperAdmin = user.role === 'super_admin'
 
   return (
     <aside 
@@ -94,6 +101,42 @@ export function DashboardSidebar({ user }: { user: User }) {
             </Link>
           )
         })}
+
+        {/* Users menu - Only visible to super admins */}
+        {isSuperAdmin && (
+          <>
+            <div 
+              className="my-4 mx-3 border-t" 
+              style={{ borderColor: 'rgba(255,255,255,0.1)' }} 
+            />
+            {adminNavItems.map((item) => {
+              const Icon = item.icon
+              const active = isActive(item.href)
+              
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg transition-all duration-200',
+                    active 
+                      ? 'text-white' 
+                      : 'text-[#94A3B8] hover:text-white'
+                  )}
+                  style={{
+                    height: '44px',
+                    padding: '0 14px',
+                    backgroundColor: active ? '#22C55E' : 'transparent',
+                    borderRadius: '8px',
+                  }}
+                >
+                  <Icon className="h-[18px] w-[18px]" style={{ color: active ? 'white' : '#94A3B8' }} />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </Link>
+              )
+            })}
+          </>
+        )}
       </nav>
 
       {/* User Profile Section */}
@@ -103,16 +146,38 @@ export function DashboardSidebar({ user }: { user: User }) {
       >
         <div className="flex items-center gap-3 px-3 mb-4">
           <div 
-            className="flex h-8 w-8 items-center justify-center rounded-full text-white font-semibold text-sm"
-            style={{ backgroundColor: '#22C55E' }}
+            className="flex items-center justify-center rounded-full"
+            style={{
+              width: '36px',
+              height: '36px',
+              backgroundColor: isSuperAdmin ? '#8B5CF6' : '#22C55E'
+            }}
           >
-            {user.name.charAt(0).toUpperCase()}
+            <span className="text-white font-semibold text-sm">
+              {user.name.charAt(0).toUpperCase()}
+            </span>
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white truncate">{user.name}</p>
             <p className="text-xs text-[#94A3B8] truncate">{user.email}</p>
           </div>
         </div>
+        
+        {/* Role Badge */}
+        {isSuperAdmin && (
+          <div className="px-3 mb-3">
+            <span 
+              className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+              style={{ 
+                backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                color: '#A78BFA'
+              }}
+            >
+              Super Admin
+            </span>
+          </div>
+        )}
+        
         <Button
           variant="ghost"
           className="w-full justify-start text-[#94A3B8] hover:text-white hover:bg-white/5"
