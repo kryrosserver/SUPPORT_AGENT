@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react'
 import useSWR from 'swr'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
 import { Send, Bot, User, UserCheck, RefreshCw } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -99,87 +98,162 @@ export function InboxClient({ initialConversations }: { initialConversations: Co
   }
 
   return (
-    <div className="flex h-full">
-      {/* Conversation List */}
-      <div className="w-80 border-r bg-card">
-        <div className="flex h-16 items-center justify-between border-b px-4">
-          <h2 className="text-lg font-semibold">Inbox</h2>
-          <Button variant="ghost" size="icon" onClick={() => mutateConversations()}>
-            <RefreshCw className="h-4 w-4" />
+    <div className="flex h-[calc(100vh-64px-60px)] bg-white" style={{ borderRadius: '14px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+      {/* Chat List - Left Column */}
+      <div 
+        className="flex flex-col border-r"
+        style={{ 
+          width: '340px',
+          borderColor: '#E5E7EB'
+        }}
+      >
+        {/* Chat List Header */}
+        <div 
+          className="flex items-center justify-between px-4"
+          style={{ 
+            height: '60px',
+            borderBottom: '1px solid #E5E7EB'
+          }}
+        >
+          <h2 
+            className="text-lg font-semibold"
+            style={{ color: '#111827' }}
+          >
+            Inbox
+          </h2>
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => mutateConversations()}
+            className="h-8 w-8"
+          >
+            <RefreshCw className="h-4 w-4" style={{ color: '#6B7280' }} />
           </Button>
         </div>
-        <ScrollArea className="h-[calc(100vh-4rem)]">
+
+        {/* Chat List Items */}
+        <div className="flex-1 overflow-y-auto">
           {!conversations || conversations.length === 0 ? (
-            <div className="p-4 text-center text-muted-foreground">
+            <div className="p-4 text-center" style={{ color: '#6B7280' }}>
               No conversations yet
             </div>
           ) : (
-            <div className="divide-y">
+            <div>
               {conversations.map((conv) => (
                 <button
                   key={conv.id}
                   onClick={() => setSelectedConversation(conv)}
                   className={cn(
-                    'w-full p-4 text-left transition-colors hover:bg-muted',
-                    selectedConversation?.id === conv.id && 'bg-muted'
+                    'w-full text-left transition-colors'
                   )}
+                  style={{
+                    height: '72px',
+                    padding: '14px',
+                    borderBottom: '1px solid #E5E7EB',
+                    backgroundColor: selectedConversation?.id === conv.id ? '#F3F4F6' : 'transparent',
+                    borderLeft: selectedConversation?.id === conv.id ? '3px solid #22C55E' : '3px solid transparent'
+                  }}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">{conv.name || conv.phone}</span>
-                    <Badge variant={conv.status === 'AI' ? 'secondary' : 'default'}>
+                    <span 
+                      className="font-medium truncate"
+                      style={{ color: '#111827' }}
+                    >
+                      {conv.name || conv.phone}
+                    </span>
+                    <span
+                      className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                      style={{
+                        backgroundColor: conv.status === 'AI' ? '#DBEAFE' : '#DCFCE7',
+                        color: conv.status === 'AI' ? '#1E40AF' : '#166534'
+                      }}
+                    >
                       {conv.status === 'AI' ? (
                         <Bot className="mr-1 h-3 w-3" />
                       ) : (
                         <UserCheck className="mr-1 h-3 w-3" />
                       )}
                       {conv.status}
-                    </Badge>
+                    </span>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground line-clamp-1">
+                  <p 
+                    className="text-sm truncate mt-1"
+                    style={{ color: '#6B7280' }}
+                  >
                     {conv.last_message || 'No messages'}
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p 
+                    className="text-xs mt-1"
+                    style={{ color: '#6B7280' }}
+                  >
                     {new Date(conv.updated_at).toLocaleString()}
                   </p>
                 </button>
               ))}
             </div>
           )}
-        </ScrollArea>
+        </div>
       </div>
 
-      {/* Chat Area */}
+      {/* Chat Conversation - Right Column */}
       <div className="flex flex-1 flex-col">
         {selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="flex h-16 items-center justify-between border-b px-4">
+            <div 
+              className="flex items-center justify-between px-6"
+              style={{ 
+                height: '60px',
+                borderBottom: '1px solid #E5E7EB'
+              }}
+            >
               <div>
-                <h3 className="font-semibold">
+                <h3 
+                  className="font-semibold"
+                  style={{ color: '#111827' }}
+                >
                   {selectedConversation.name || selectedConversation.phone}
                 </h3>
-                <p className="text-sm text-muted-foreground">{selectedConversation.phone}</p>
+                <p 
+                  className="text-sm"
+                  style={{ color: '#6B7280' }}
+                >
+                  {selectedConversation.phone}
+                </p>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant={selectedConversation.status === 'AI' ? 'secondary' : 'default'}>
-                  {selectedConversation.status === 'AI' ? 'AI Mode' : 'Human Mode'}
-                </Badge>
                 {selectedConversation.status === 'AI' ? (
-                  <Button variant="outline" size="sm" onClick={handleTakeover}>
-                    <UserCheck className="mr-2 h-4 w-4" />
-                    Take Over
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleTakeover}
+                    style={{
+                      borderColor: '#E5E7EB',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <UserCheck className="mr-2 h-4 w-4" style={{ color: '#22C55E' }} />
+                    <span style={{ color: '#111827' }}>Human Mode</span>
                   </Button>
                 ) : (
-                  <Button variant="outline" size="sm" onClick={handleSwitchToAI}>
-                    <Bot className="mr-2 h-4 w-4" />
-                    Switch to AI
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleSwitchToAI}
+                    style={{
+                      borderColor: '#E5E7EB',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <Bot className="mr-2 h-4 w-4" style={{ color: '#3B82F6' }} />
+                    <span style={{ color: '#111827' }}>Switch to AI</span>
                   </Button>
                 )}
               </div>
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4">
+            <div className="flex-1 overflow-y-auto p-4" style={{ backgroundColor: '#FAFAFA' }}>
               <div className="space-y-4">
                 {messages?.map((msg) => (
                   <div
@@ -191,15 +265,25 @@ export function InboxClient({ initialConversations }: { initialConversations: Co
                   >
                     <div
                       className={cn(
-                        'max-w-[70%] rounded-lg px-4 py-2',
-                        msg.sender === 'customer'
-                          ? 'bg-muted'
-                          : msg.sender === 'ai'
-                          ? 'bg-blue-100 text-blue-900'
-                          : 'bg-primary text-primary-foreground'
+                        'rounded-xl px-4 py-2.5'
                       )}
+                      style={{
+                        maxWidth: '70%',
+                        backgroundColor: msg.sender === 'customer' 
+                          ? '#F3F4F6' 
+                          : msg.sender === 'ai' 
+                            ? '#DBEAFE' 
+                            : '#22C55E',
+                        color: msg.sender === 'customer' 
+                          ? '#111827' 
+                          : msg.sender === 'ai' 
+                            ? '#1E3A8A' 
+                            : 'white',
+                      }}
                     >
-                      <div className="mb-1 flex items-center gap-1 text-xs opacity-70">
+                      <div 
+                        className="flex items-center gap-1 text-xs mb-1 opacity-70"
+                      >
                         {msg.sender === 'customer' ? (
                           <User className="h-3 w-3" />
                         ) : msg.sender === 'ai' ? (
@@ -207,10 +291,18 @@ export function InboxClient({ initialConversations }: { initialConversations: Co
                         ) : (
                           <UserCheck className="h-3 w-3" />
                         )}
-                        {msg.sender === 'customer' ? 'Customer' : msg.sender === 'ai' ? 'AI' : 'Agent'}
+                        <span>
+                          {msg.sender === 'customer' 
+                            ? 'Customer' 
+                            : msg.sender === 'ai' 
+                              ? 'AI' 
+                              : 'Agent'}
+                        </span>
                       </div>
                       <p className="whitespace-pre-wrap">{msg.content}</p>
-                      <p className="mt-1 text-xs opacity-70">
+                      <p 
+                        className="text-xs mt-1 opacity-70"
+                      >
                         {new Date(msg.created_at).toLocaleTimeString()}
                       </p>
                     </div>
@@ -218,25 +310,49 @@ export function InboxClient({ initialConversations }: { initialConversations: Co
                 ))}
                 <div ref={messagesEndRef} />
               </div>
-            </ScrollArea>
+            </div>
 
             {/* Message Input */}
-            <form onSubmit={handleSendMessage} className="border-t p-4">
-              <div className="flex gap-2">
-                <Input
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Type a message..."
-                  disabled={isSending}
-                />
-                <Button type="submit" disabled={isSending || !message.trim()}>
-                  <Send className="h-4 w-4" />
-                </Button>
-              </div>
+            <form 
+              onSubmit={handleSendMessage} 
+              className="flex items-center gap-3 px-4"
+              style={{ 
+                height: '72px',
+                borderTop: '1px solid #E5E7EB',
+                backgroundColor: '#FFFFFF'
+              }}
+            >
+              <Input
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Type a message..."
+                disabled={isSending}
+                style={{
+                  height: '42px',
+                  border: '1px solid #E5E7EB',
+                  borderRadius: '10px',
+                  padding: '0 12px'
+                }}
+              />
+              <Button 
+                type="submit" 
+                disabled={isSending || !message.trim()}
+                style={{
+                  height: '42px',
+                  backgroundColor: '#22C55E',
+                  borderRadius: '10px',
+                  padding: '0 20px'
+                }}
+              >
+                <Send className="h-4 w-4" />
+              </Button>
             </form>
           </>
         ) : (
-          <div className="flex flex-1 items-center justify-center text-muted-foreground">
+          <div 
+            className="flex flex-1 items-center justify-center"
+            style={{ color: '#6B7280' }}
+          >
             Select a conversation to start chatting
           </div>
         )}

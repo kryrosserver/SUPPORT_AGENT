@@ -45,49 +45,86 @@ export function DashboardSidebar({ user }: { user: User }) {
   }
 
   return (
-    <aside className="flex h-full w-64 flex-col border-r bg-card">
-      <div className="flex h-16 items-center border-b px-6">
+    <aside 
+      className="fixed left-0 top-0 flex h-screen flex-col"
+      style={{
+        backgroundColor: '#0F172A',
+        width: '260px',
+        padding: '20px'
+      }}
+    >
+      {/* Logo */}
+      <div className="flex h-12 items-center px-2 mb-6">
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary">
-            <MessageCircle className="h-4 w-4 text-primary-foreground" />
+          <div 
+            className="flex h-9 w-9 items-center justify-center rounded-lg"
+            style={{ backgroundColor: '#22C55E' }}
+          >
+            <MessageCircle className="h-5 w-5 text-white" />
           </div>
-          <span className="text-lg font-semibold">KRYROS</span>
+          <span className="text-xl font-bold text-white">KRYROS</span>
         </Link>
       </div>
 
-      <nav className="flex-1 space-y-1 p-4">
+      {/* Navigation */}
+      <nav className="flex-1 space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon
+          const active = isActive(item.href)
+          
           return (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                isActive(item.href)
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                'flex items-center gap-3 rounded-lg transition-all duration-200',
+                active 
+                  ? 'text-white' 
+                  : 'text-[#94A3B8] hover:text-white'
               )}
+              style={{
+                height: '44px',
+                padding: '0 14px',
+                backgroundColor: active ? '#22C55E' : 'transparent',
+                borderRadius: '8px',
+              }}
             >
-              <Icon className="h-4 w-4" />
-              {item.label}
+              <Icon className="h-[18px] w-[18px]" style={{ color: active ? 'white' : '#94A3B8' }} />
+              <span className="text-sm font-medium">{item.label}</span>
             </Link>
           )
         })}
       </nav>
 
-      <div className="border-t p-4">
-        <div className="mb-3 px-3">
-          <p className="text-sm font-medium">{user.name}</p>
-          <p className="text-xs text-muted-foreground">{user.email}</p>
+      {/* User Profile Section */}
+      <div 
+        className="border-t pt-4 mt-4"
+        style={{ borderColor: 'rgba(255,255,255,0.1)' }}
+      >
+        <div className="flex items-center gap-3 px-3 mb-4">
+          <div 
+            className="flex h-8 w-8 items-center justify-center rounded-full text-white font-semibold text-sm"
+            style={{ backgroundColor: '#22C55E' }}
+          >
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-white truncate">{user.name}</p>
+            <p className="text-xs text-[#94A3B8] truncate">{user.email}</p>
+          </div>
         </div>
         <Button
           variant="ghost"
-          className="w-full justify-start text-muted-foreground hover:text-foreground"
+          className="w-full justify-start text-[#94A3B8] hover:text-white hover:bg-white/5"
           onClick={handleLogout}
+          style={{
+            height: '40px',
+            padding: '0 14px',
+            borderRadius: '8px'
+          }}
         >
-          <LogOut className="mr-3 h-4 w-4" />
-          Logout
+          <LogOut className="mr-3 h-[18px] w-[18px]" />
+          <span className="text-sm">Logout</span>
         </Button>
       </div>
     </aside>

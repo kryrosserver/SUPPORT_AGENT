@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import useSWR from 'swr'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Spinner } from '@/components/ui/spinner'
 import {
   AlertDialog,
@@ -70,186 +69,329 @@ export default function WhatsAppPage() {
   }
 
   return (
-    <div className="p-6">
+    <div>
+      {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">WhatsApp Connection</h1>
-        <p className="text-muted-foreground">Connect your WhatsApp Business account</p>
+        <h1 
+          className="text-2xl font-bold"
+          style={{ color: '#111827' }}
+        >
+          WhatsApp Connection
+        </h1>
+        <p 
+          className="mt-1 text-sm"
+          style={{ color: '#6B7280' }}
+        >
+          Connect your WhatsApp Business account
+        </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageCircle className="h-5 w-5" />
+      {/* Connection Status and QR Code Cards */}
+      <div 
+        className="grid gap-6"
+        style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}
+      >
+        {/* Connection Status Card */}
+        <div 
+          className="bg-white"
+          style={{ 
+            borderRadius: '14px', 
+            padding: '24px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+          }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <MessageCircle className="h-5 w-5" style={{ color: '#22C55E' }} />
+            <h2 
+              className="text-lg font-semibold"
+              style={{ color: '#111827' }}
+            >
               Connection Status
-            </CardTitle>
-            <CardDescription>Current WhatsApp connection state</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4">
-              {isLoading ? (
-                <Spinner />
-              ) : status?.connected ? (
-                <>
-                  <Badge className="gap-1 bg-green-100 text-green-700 hover:bg-green-100">
-                    <CheckCircle className="h-3 w-3" />
-                    Connected
-                  </Badge>
-                  {status.phone && (
-                    <span className="text-muted-foreground">{status.phone}</span>
-                  )}
-                </>
-              ) : (
-                <Badge variant="secondary" className="gap-1">
-                  <AlertTriangle className="h-3 w-3" />
-                  Disconnected
-                </Badge>
-              )}
-            </div>
+            </h2>
+          </div>
+          <p 
+            className="text-sm mb-6"
+            style={{ color: '#6B7280' }}
+          >
+            Current WhatsApp connection state
+          </p>
 
-            {status?.error && (
-              <div className="mt-4 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                {status.error}
-              </div>
+          <div className="flex items-center gap-4 mb-4">
+            {isLoading ? (
+              <Spinner />
+            ) : status?.connected ? (
+              <>
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
+                  style={{
+                    backgroundColor: '#DCFCE7',
+                    color: '#166534'
+                  }}
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Connected
+                </span>
+                {status.phone && (
+                  <span style={{ color: '#6B7280' }}>{status.phone}</span>
+                )}
+              </>
+            ) : (
+              <span
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium"
+                style={{
+                  backgroundColor: '#F3F4F6',
+                  color: '#6B7280'
+                }}
+              >
+                <AlertTriangle className="h-4 w-4" />
+                Disconnected
+              </span>
             )}
+          </div>
 
-            <div className="mt-6 flex flex-wrap gap-2">
-              {!status?.connected ? (
-                <Button onClick={handleConnect} disabled={isConnecting}>
-                  {isConnecting ? (
-                    <>
-                      <Spinner className="mr-2" />
-                      Connecting...
-                    </>
-                  ) : (
-                    <>
-                      <Power className="mr-2 h-4 w-4" />
-                      Connect WhatsApp
-                    </>
-                  )}
-                </Button>
-              ) : (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="destructive" disabled={isDisconnecting}>
-                      {isDisconnecting ? (
-                        <>
-                          <Spinner className="mr-2" />
-                          Disconnecting...
-                        </>
-                      ) : (
-                        <>
-                          <Power className="mr-2 h-4 w-4" />
-                          Disconnect
-                        </>
-                      )}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Disconnect WhatsApp?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will disconnect your WhatsApp account. You will need to scan the QR
-                        code again to reconnect.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDisconnect}>
-                        Disconnect
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
+          {status?.error && (
+            <div 
+              className="mt-4 rounded-md p-3 text-sm"
+              style={{ 
+                backgroundColor: '#FEF2F2',
+                color: '#DC2626'
+              }}
+            >
+              {status.error}
+            </div>
+          )}
 
-              <Button variant="outline" onClick={() => mutate()}>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Refresh Status
+          <div className="mt-6 flex flex-wrap gap-3">
+            {!status?.connected ? (
+              <Button 
+                onClick={handleConnect} 
+                disabled={isConnecting}
+                style={{
+                  height: '42px',
+                  backgroundColor: '#22C55E',
+                  borderRadius: '8px',
+                  color: 'white'
+                }}
+              >
+                {isConnecting ? (
+                  <>
+                    <Spinner className="mr-2" />
+                    Connecting...
+                  </>
+                ) : (
+                  <>
+                    <Power className="mr-2 h-4 w-4" />
+                    Connect WhatsApp
+                  </>
+                )}
               </Button>
-
+            ) : (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="outline">
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                    Reset Session
+                  <Button 
+                    variant="destructive"
+                    disabled={isDisconnecting}
+                    style={{
+                      height: '42px',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    {isDisconnecting ? (
+                      <>
+                        <Spinner className="mr-2" />
+                        Disconnecting...
+                      </>
+                    ) : (
+                      <>
+                        <Power className="mr-2 h-4 w-4" />
+                        Disconnect
+                      </>
+                    )}
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Reset WhatsApp Session?</AlertDialogTitle>
+                    <AlertDialogTitle>Disconnect WhatsApp?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will clear the stored session data. You will need to scan the QR code
-                      again to connect.
+                      This will disconnect your WhatsApp account. You will need to scan the QR
+                      code again to reconnect.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleReset}>Reset Session</AlertDialogAction>
+                    <AlertDialogAction onClick={handleDisconnect}>
+                      Disconnect
+                    </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <QrCode className="h-5 w-5" />
-              QR Code
-            </CardTitle>
-            <CardDescription>Scan with WhatsApp to connect</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {status?.connected ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <CheckCircle className="mb-4 h-16 w-16 text-green-500" />
-                <p className="text-lg font-medium">WhatsApp Connected</p>
-                <p className="text-muted-foreground">Your WhatsApp account is linked</p>
-              </div>
-            ) : status?.qrCode ? (
-              <div className="flex flex-col items-center">
-                <div className="rounded-lg border bg-white p-4">
-                  <img
-                    src={status.qrCode}
-                    alt="WhatsApp QR Code"
-                    className="h-48 w-48"
-                  />
-                </div>
-                <p className="mt-4 text-sm text-muted-foreground text-center">
-                  Open WhatsApp on your phone, go to Settings &gt; Linked Devices &gt; Link a Device
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <QrCode className="mb-4 h-16 w-16 text-muted-foreground" />
-                <p className="text-lg font-medium">No QR Code Available</p>
-                <p className="text-muted-foreground">
-                  Click &quot;Connect WhatsApp&quot; to generate a QR code
-                </p>
-              </div>
             )}
-          </CardContent>
-        </Card>
+
+            <Button 
+              variant="outline" 
+              onClick={() => mutate()}
+              style={{
+                height: '42px',
+                borderColor: '#E5E7EB',
+                borderRadius: '8px',
+                color: '#111827'
+              }}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh Status
+            </Button>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="outline"
+                  style={{
+                    height: '42px',
+                    borderColor: '#E5E7EB',
+                    borderRadius: '8px',
+                    color: '#111827'
+                  }}
+                >
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Reset Session
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Reset WhatsApp Session?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will clear the stored session data. You will need to scan the QR code
+                    again to connect.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleReset}>Reset Session</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </div>
+
+        {/* QR Code Card */}
+        <div 
+          className="bg-white"
+          style={{ 
+            borderRadius: '14px', 
+            padding: '24px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+          }}
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <QrCode className="h-5 w-5" style={{ color: '#22C55E' }} />
+            <h2 
+              className="text-lg font-semibold"
+              style={{ color: '#111827' }}
+            >
+              QR Code
+            </h2>
+          </div>
+          <p 
+            className="text-sm mb-6"
+            style={{ color: '#6B7280' }}
+          >
+            Scan with WhatsApp to connect
+          </p>
+
+          {status?.connected ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <CheckCircle 
+                className="mb-4 h-16 w-16" 
+                style={{ color: '#22C55E' }} 
+              />
+              <p 
+                className="text-lg font-medium"
+                style={{ color: '#111827' }}
+              >
+                WhatsApp Connected
+              </p>
+              <p 
+                className="text-sm mt-1"
+                style={{ color: '#6B7280' }}
+              >
+                Your WhatsApp account is linked
+              </p>
+            </div>
+          ) : status?.qrCode ? (
+            <div className="flex flex-col items-center">
+              <div 
+                className="rounded-lg border p-4"
+                style={{ borderColor: '#E5E7EB', backgroundColor: 'white' }}
+              >
+                <img
+                  src={status.qrCode}
+                  alt="WhatsApp QR Code"
+                  className="h-48 w-48"
+                />
+              </div>
+              <p 
+                className="mt-4 text-sm text-center"
+                style={{ color: '#6B7280' }}
+              >
+                Open WhatsApp on your phone, go to Settings > Linked Devices > Link a Device
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-8 text-center">
+              <QrCode 
+                className="mb-4 h-16 w-16" 
+                style={{ color: '#6B7280' }} 
+              />
+              <p 
+                className="text-lg font-medium"
+                style={{ color: '#111827' }}
+              >
+                No QR Code Available
+              </p>
+              <p 
+                className="text-sm mt-1"
+                style={{ color: '#6B7280' }}
+              >
+                Click "Connect WhatsApp" to generate a QR code
+              </p>
+            </div>
+          )}
+        </div>
       </div>
 
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Setup Instructions</CardTitle>
-          <CardDescription>How to connect your WhatsApp account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ol className="list-inside list-decimal space-y-2 text-muted-foreground">
-            <li>Click the &quot;Connect WhatsApp&quot; button above</li>
-            <li>Wait for the QR code to appear</li>
-            <li>Open WhatsApp on your phone</li>
-            <li>Go to Settings &gt; Linked Devices &gt; Link a Device</li>
-            <li>Scan the QR code with your phone</li>
-            <li>Once connected, incoming messages will appear in the Inbox</li>
-          </ol>
-        </CardContent>
-      </Card>
+      {/* Setup Instructions Card */}
+      <div 
+        className="bg-white mt-6"
+        style={{ 
+          borderRadius: '14px', 
+          padding: '24px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+        }}
+      >
+        <h2 
+          className="text-lg font-semibold mb-2"
+          style={{ color: '#111827' }}
+        >
+          Setup Instructions
+        </h2>
+        <p 
+          className="text-sm mb-6"
+          style={{ color: '#6B7280' }}
+        >
+          How to connect your WhatsApp account
+        </p>
+        <ol 
+          className="list-inside list-decimal space-y-2"
+          style={{ color: '#6B7280' }}
+        >
+          <li>Click the "Connect WhatsApp" button above</li>
+          <li>Wait for the QR code to appear</li>
+          <li>Open WhatsApp on your phone</li>
+          <li>Go to Settings > Linked Devices > Link a Device</li>
+          <li>Scan the QR code with your phone</li>
+          <li>Once connected, incoming messages will appear in the Inbox</li>
+        </ol>
+      </div>
     </div>
   )
 }

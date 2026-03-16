@@ -4,14 +4,28 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
+  /* Global Colors */
+  --primary-green: #22C55E;
+  --dark-sidebar: #0F172A;
+  --topbar-bg: #FFFFFF;
+  --page-bg: #F3F4F6;
+  --card-bg: #FFFFFF;
+  --border-color: #E5E7EB;
+  --text-dark: #111827;
+  --text-muted: #6B7280;
+  
+  /* Legacy shadcn variables (keeping for compatibility) */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --primary: #22C55E;
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
@@ -21,23 +35,23 @@
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: #E5E7EB;
+  --input: #E5E7EB;
+  --ring: #22C55E;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar: #0F172A;
+  --sidebar-foreground: #94A3B8;
+  --sidebar-primary: #22C55E;
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent: rgba(255,255,255,0.05);
   --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-border: rgba(255,255,255,0.1);
+  --sidebar-ring: #22C55E;
 }
 
 .dark {
@@ -47,7 +61,7 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.145 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
+  --primary: #22C55E;
   --primary-foreground: oklch(0.205 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -59,7 +73,7 @@
   --destructive-foreground: oklch(0.637 0.237 25.331);
   --border: oklch(0.269 0 0);
   --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
+  --ring: #22C55E;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -76,8 +90,8 @@
 }
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: 'Inter', 'Inter Fallback', system-ui, sans-serif;
+  --font-mono: ui-monospace, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -114,6 +128,16 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  
+  /* Custom colors */
+  --color-primary-green: #22C55E;
+  --color-dark-sidebar: #0F172A;
+  --color-topbar: #FFFFFF;
+  --color-page: #F3F4F6;
+  --color-card-bg: #FFFFFF;
+  --color-border-custom: #E5E7EB;
+  --color-text-dark: #111827;
+  --color-text-muted: #6B7280;
 }
 
 @layer base {
@@ -121,6 +145,73 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+/* Custom utility classes */
+@layer utilities {
+  .sidebar-width {
+    width: 260px;
+  }
+  
+  .topbar-height {
+    height: 64px;
+  }
+  
+  .content-padding {
+    padding: 30px;
+  }
+  
+  .card-shadow {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+  
+  .card-radius {
+    border-radius: 14px;
+  }
+  
+  .menu-item-height {
+    height: 44px;
+  }
+  
+  .chat-list-width {
+    width: 340px;
+  }
+  
+  .message-bubble-customer {
+    background: #F3F4F6;
+    color: #111827;
+    border-radius: 12px;
+    padding: 10px 14px;
+    max-width: 70%;
+  }
+  
+  .message-bubble-ai {
+    background: #DBEAFE;
+    color: #1E3A8A;
+    border-radius: 12px;
+    padding: 10px 14px;
+    max-width: 70%;
+  }
+  
+  .input-height {
+    height: 42px;
+  }
+  
+  .btn-primary-green {
+    background: #22C55E;
+    color: white;
+    border-radius: 10px;
+  }
+  
+  .table-header-custom {
+    background: #F9FAFB;
+    font-weight: 600;
+  }
+  
+  .table-row-height {
+    height: 56px;
   }
 }

@@ -4,8 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FieldGroup, Field, FieldLabel } from '@/components/ui/field'
 import { Spinner } from '@/components/ui/spinner'
 import { MessageSquare, AlertCircle } from 'lucide-react'
 
@@ -44,64 +42,167 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary">
-            <MessageSquare className="h-6 w-6 text-primary-foreground" />
+    <div 
+      className="min-h-screen flex items-center justify-center"
+      style={{ backgroundColor: '#F3F4F6' }}
+    >
+      {/* Login Card */}
+      <div 
+        className="w-full max-w-md px-8 py-10"
+        style={{ 
+          backgroundColor: '#FFFFFF',
+          borderRadius: '16px',
+          boxShadow: '0 10px 25px rgba(0,0,0,0.08)'
+        }}
+      >
+        {/* Logo and Header */}
+        <div className="text-center mb-8">
+          <div 
+            className="mx-auto mb-4 flex items-center justify-center rounded-xl"
+            style={{
+              width: '56px',
+              height: '56px',
+              backgroundColor: '#22C55E'
+            }}
+          >
+            <MessageSquare className="h-7 w-7 text-white" />
           </div>
-          <CardTitle className="text-2xl font-bold">KRYROS Support</CardTitle>
-          <CardDescription>Sign in to access the dashboard</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit}>
-            <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  disabled={isLoading}
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="password">Password</FieldLabel>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  disabled={isLoading}
-                />
-              </Field>
-            </FieldGroup>
+          <h1 
+            className="text-2xl font-bold"
+            style={{ color: '#111827' }}
+          >
+            KRYROS
+          </h1>
+          <p 
+            className="mt-2 text-sm"
+            style={{ color: '#6B7280' }}
+          >
+            Welcome Back
+          </p>
+          <p 
+            className="text-sm"
+            style={{ color: '#6B7280' }}
+          >
+            Sign in to your account
+          </p>
+        </div>
 
-            {error && (
-              <div className="mt-4 flex items-center gap-2 text-sm text-destructive">
-                <AlertCircle className="h-4 w-4" />
-                {error}
-              </div>
+        {/* Login Form */}
+        <form onSubmit={handleSubmit}>
+          {/* Email Input */}
+          <div className="mb-5">
+            <label 
+              className="text-sm font-medium mb-2 block"
+              style={{ color: '#111827' }}
+              htmlFor="email"
+            >
+              Email
+            </label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={isLoading}
+              style={{
+                height: '42px',
+                border: '1px solid #E5E7EB',
+                borderRadius: '8px'
+              }}
+            />
+          </div>
+
+          {/* Password Input */}
+          <div className="mb-5">
+            <div className="flex items-center justify-between mb-2">
+              <label 
+                className="text-sm font-medium"
+                style={{ color: '#111827' }}
+                htmlFor="password"
+              >
+                Password
+              </label>
+              <a 
+                href="#" 
+                className="text-sm"
+                style={{ color: '#22C55E' }}
+              >
+                Forgot password?
+              </a>
+            </div>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={isLoading}
+              style={{
+                height: '42px',
+                border: '1px solid #E5E7EB',
+                borderRadius: '8px'
+              }}
+            />
+          </div>
+
+          {/* Remember Me */}
+          <div className="flex items-center mb-6">
+            <input
+              type="checkbox"
+              id="remember"
+              className="mr-2"
+              style={{ accentColor: '#22C55E' }}
+            />
+            <label 
+              htmlFor="remember" 
+              className="text-sm"
+              style={{ color: '#6B7280' }}
+            >
+              Remember me
+            </label>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div 
+              className="flex items-center gap-2 text-sm mb-4 p-3 rounded-lg"
+              style={{ 
+                backgroundColor: '#FEF2F2',
+                color: '#DC2626'
+              }}
+            >
+              <AlertCircle className="h-4 w-4" />
+              {error}
+            </div>
+          )}
+
+          {/* Sign In Button */}
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={isLoading}
+            style={{
+              height: '48px',
+              backgroundColor: '#22C55E',
+              borderRadius: '10px',
+              color: 'white',
+              fontWeight: '500'
+            }}
+          >
+            {isLoading ? (
+              <>
+                <Spinner className="mr-2" />
+                Signing in...
+              </>
+            ) : (
+              'Sign In'
             )}
-
-            <Button type="submit" className="mt-6 w-full" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Spinner className="mr-2" />
-                  Signing in...
-                </>
-              ) : (
-                'Sign in'
-              )}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          </Button>
+        </form>
+      </div>
     </div>
   )
 }

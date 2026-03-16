@@ -1,6 +1,7 @@
 import { sql } from '@/lib/db'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { MessageSquare, Users, Bot, UserCheck } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 async function getStats() {
   const [conversations, contacts, aiConversations, humanConversations] = await Promise.all([
@@ -34,106 +35,260 @@ export default async function DashboardPage() {
   const recentConversations = await getRecentConversations()
 
   return (
-    <div className="p-6">
+    <div>
+      {/* Page Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome to KRYROS Support Dashboard</p>
+        <h1 
+          className="text-2xl font-bold" 
+          style={{ color: '#111827' }}
+        >
+          Dashboard
+        </h1>
+        <p 
+          className="mt-1 text-sm"
+          style={{ color: '#6B7280' }}
+        >
+          Welcome to KRYROS Support Dashboard
+        </p>
       </div>
 
-      <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Conversations</CardTitle>
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalConversations}</div>
-            <p className="text-xs text-muted-foreground">All customer chats</p>
-          </CardContent>
-        </Card>
+      {/* Stats Cards Grid */}
+      <div 
+        className="mb-8 grid gap-6"
+        style={{ 
+          gridTemplateColumns: 'repeat(4, 1fr)',
+        }}
+      >
+        {/* Total Conversations */}
+        <div 
+          className="bg-white"
+          style={{ 
+            borderRadius: '14px', 
+            padding: '24px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+          }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <span 
+              className="text-sm font-medium"
+              style={{ color: '#6B7280' }}
+            >
+              Total Conversations
+            </span>
+            <MessageSquare 
+              className="h-5 w-5" 
+              style={{ color: '#6B7280' }} 
+            />
+          </div>
+          <div 
+            className="font-bold"
+            style={{ 
+              fontSize: '28px',
+              color: '#111827'
+            }}
+          >
+            {stats.totalConversations}
+          </div>
+          <p 
+            className="text-xs mt-1"
+            style={{ color: '#6B7280' }}
+          >
+            All customer chats
+          </p>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Contacts</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalContacts}</div>
-            <p className="text-xs text-muted-foreground">Unique customers</p>
-          </CardContent>
-        </Card>
+        {/* Total Contacts */}
+        <div 
+          className="bg-white"
+          style={{ 
+            borderRadius: '14px', 
+            padding: '24px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+          }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <span 
+              className="text-sm font-medium"
+              style={{ color: '#6B7280' }}
+            >
+              Total Contacts
+            </span>
+            <Users 
+              className="h-5 w-5" 
+              style={{ color: '#6B7280' }} 
+            />
+          </div>
+          <div 
+            className="font-bold"
+            style={{ 
+              fontSize: '28px',
+              color: '#111827'
+            }}
+          >
+            {stats.totalContacts}
+          </div>
+          <p 
+            className="text-xs mt-1"
+            style={{ color: '#6B7280' }}
+          >
+            Unique customers
+          </p>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">AI Handled</CardTitle>
-            <Bot className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.aiHandled}</div>
-            <p className="text-xs text-muted-foreground">Automated responses</p>
-          </CardContent>
-        </Card>
+        {/* AI Handled */}
+        <div 
+          className="bg-white"
+          style={{ 
+            borderRadius: '14px', 
+            padding: '24px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+          }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <span 
+              className="text-sm font-medium"
+              style={{ color: '#6B7280' }}
+            >
+              AI Handled
+            </span>
+            <Bot 
+              className="h-5 w-5" 
+              style={{ color: '#6B7280' }} 
+            />
+          </div>
+          <div 
+            className="font-bold"
+            style={{ 
+              fontSize: '28px',
+              color: '#111827'
+            }}
+          >
+            {stats.aiHandled}
+          </div>
+          <p 
+            className="text-xs mt-1"
+            style={{ color: '#6B7280' }}
+          >
+            Automated responses
+          </p>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Human Handled</CardTitle>
-            <UserCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.humanHandled}</div>
-            <p className="text-xs text-muted-foreground">Agent responses</p>
-          </CardContent>
-        </Card>
+        {/* Human Handled */}
+        <div 
+          className="bg-white"
+          style={{ 
+            borderRadius: '14px', 
+            padding: '24px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+          }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <span 
+              className="text-sm font-medium"
+              style={{ color: '#6B7280' }}
+            >
+              Human Handled
+            </span>
+            <UserCheck 
+              className="h-5 w-5" 
+              style={{ color: '#6B7280' }} 
+            />
+          </div>
+          <div 
+            className="font-bold"
+            style={{ 
+              fontSize: '28px',
+              color: '#111827'
+            }}
+          >
+            {stats.humanHandled}
+          </div>
+          <p 
+            className="text-xs mt-1"
+            style={{ color: '#6B7280' }}
+          >
+            Agent responses
+          </p>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Conversations</CardTitle>
-          <CardDescription>Latest customer interactions</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {recentConversations.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">
+      {/* Recent Conversations Card */}
+      <div 
+        className="bg-white"
+        style={{ 
+          borderRadius: '14px', 
+          padding: '24px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+        }}
+      >
+        <div className="mb-6">
+          <h2 
+            className="text-lg font-semibold"
+            style={{ color: '#111827' }}
+          >
+            Recent Conversations
+          </h2>
+          <p 
+            className="text-sm mt-1"
+            style={{ color: '#6B7280' }}
+          >
+            Latest customer interactions
+          </p>
+        </div>
+
+        {recentConversations.length === 0 ? (
+          <div className="text-center py-8">
+            <p style={{ color: '#6B7280' }}>
               No conversations yet. Connect WhatsApp to start receiving messages.
             </p>
-          ) : (
-            <div className="space-y-4">
-              {recentConversations.map((conv) => (
-                <div
-                  key={conv.id}
-                  className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0"
-                >
-                  <div>
-                    <p className="font-medium">{conv.name || conv.phone}</p>
-                    <p className="text-sm text-muted-foreground line-clamp-1">
-                      {conv.last_message || 'No messages'}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span
-                      className={cn(
-                        'inline-flex items-center rounded-full px-2 py-1 text-xs font-medium',
-                        conv.status === 'AI'
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-green-100 text-green-700'
-                      )}
-                    >
-                      {conv.status}
-                    </span>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {new Date(conv.updated_at).toLocaleDateString()}
-                    </p>
-                  </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {recentConversations.map((conv) => (
+              <div
+                key={conv.id}
+                className="flex items-center justify-between pb-4 last:border-0"
+                style={{ 
+                  borderBottom: '1px solid #E5E7EB',
+                  paddingBottom: '16px'
+                }}
+              >
+                <div className="flex-1 min-w-0">
+                  <p 
+                    className="font-medium truncate"
+                    style={{ color: '#111827' }}
+                  >
+                    {conv.name || conv.phone}
+                  </p>
+                  <p 
+                    className="text-sm truncate mt-1"
+                    style={{ color: '#6B7280' }}
+                  >
+                    {conv.last_message || 'No messages'}
+                  </p>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <div className="flex items-center gap-3 ml-4">
+                  <span
+                    className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
+                    style={{
+                      backgroundColor: conv.status === 'AI' ? '#DBEAFE' : '#DCFCE7',
+                      color: conv.status === 'AI' ? '#1E40AF' : '#166534'
+                    }}
+                  >
+                    {conv.status}
+                  </span>
+                  <p 
+                    className="text-xs whitespace-nowrap"
+                    style={{ color: '#6B7280' }}
+                  >
+                    {new Date(conv.updated_at).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
-}
-
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(' ')
 }
