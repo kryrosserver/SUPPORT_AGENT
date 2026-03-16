@@ -20,34 +20,40 @@ export async function GET(request: Request) {
 
     let data
 
-    switch (type) {
-      case 'faqs':
-        data = await sql`SELECT * FROM faqs ORDER BY created_at DESC`
-        break
-      case 'templates':
-        data = await sql`SELECT * FROM response_templates ORDER BY created_at DESC`
-        break
-      case 'filters':
-        data = await sql`SELECT * FROM content_filters ORDER BY created_at DESC`
-        break
-      case 'products':
-        data = await sql`SELECT * FROM product_info ORDER BY created_at DESC`
-        break
-      default:
-        // Return all data
-        const [faqs, templates, filters, products] = await Promise.all([
-          sql`SELECT * FROM faqs ORDER BY created_at DESC`,
-          sql`SELECT * FROM response_templates ORDER BY created_at DESC`,
-          sql`SELECT * FROM content_filters ORDER BY created_at DESC`,
-          sql`SELECT * FROM product_info ORDER BY created_at DESC`
-        ])
-        data = { faqs, templates, filters, products }
+    try {
+      switch (type) {
+        case 'faqs':
+          data = await sql`SELECT * FROM faqs ORDER BY created_at DESC`
+          break
+        case 'templates':
+          data = await sql`SELECT * FROM response_templates ORDER BY created_at DESC`
+          break
+        case 'filters':
+          data = await sql`SELECT * FROM content_filters ORDER BY created_at DESC`
+          break
+        case 'products':
+          data = await sql`SELECT * FROM product_info ORDER BY created_at DESC`
+          break
+        default:
+          // Return all data
+          const [faqs, templates, filters, products] = await Promise.all([
+            sql`SELECT * FROM faqs ORDER BY created_at DESC`,
+            sql`SELECT * FROM response_templates ORDER BY created_at DESC`,
+            sql`SELECT * FROM content_filters ORDER BY created_at DESC`,
+            sql`SELECT * FROM product_info ORDER BY created_at DESC`
+          ])
+          data = { faqs, templates, filters, products }
+      }
+    } catch (dbError) {
+      // Tables might not exist yet
+      console.error('Database error:', dbError)
+      return NextResponse.json([])
     }
 
     return NextResponse.json(data)
   } catch (error) {
     console.error('Error fetching AI control data:', error)
-    return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 })
+    return NextResponse.json([])
   }
 }
 

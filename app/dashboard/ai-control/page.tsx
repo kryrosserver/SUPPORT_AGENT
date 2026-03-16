@@ -157,12 +157,18 @@ export default function AIControlPage() {
       const filtersData = await filtersRes.json()
       const productsData = await productsRes.json()
 
-      setFaqs(faqsData)
-      setTemplates(templatesData)
-      setFilters(filtersData)
-      setProducts(productsData)
+      // Handle cases where tables might not exist
+      setFaqs(Array.isArray(faqsData) ? faqsData : [])
+      setTemplates(Array.isArray(templatesData) ? templatesData : [])
+      setFilters(Array.isArray(filtersData) ? filtersData : [])
+      setProducts(Array.isArray(productsData) ? productsData : [])
     } catch (error) {
       console.error('Failed to fetch data:', error)
+      // Set empty arrays on error
+      setFaqs([])
+      setTemplates([])
+      setFilters([])
+      setProducts([])
     } finally {
       setIsLoading(false)
     }
