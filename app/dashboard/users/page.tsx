@@ -32,7 +32,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Spinner } from '@/components/ui/spinner'
-import { UserCog, Plus, Shield, ShieldOff, Trash2, User, Admin, Crown } from 'lucide-react'
+import { UserCog, Plus, Shield, ShieldOff, Trash2, User, ShieldCheck, Crown } from 'lucide-react'
 
 interface User {
   id: number
@@ -202,7 +202,7 @@ export default function UsersPage() {
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium"
             style={{ backgroundColor: '#3B82F6', color: 'white' }}
           >
-            <Admin className="h-3 w-3" />
+            <ShieldCheck className="h-3 w-3" />
             Admin
           </span>
         )
