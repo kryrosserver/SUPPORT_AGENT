@@ -12,6 +12,7 @@ import {
   Settings,
   LogOut,
   UserCog,
+  Brain,
 } from 'lucide-react'
 
 interface User {
@@ -33,6 +34,10 @@ const adminNavItems = [
   { href: '/dashboard/users', label: 'Users', icon: UserCog },
 ]
 
+const aiControlNavItems = [
+  { href: '/dashboard/ai-control', label: 'AI Control', icon: Brain },
+]
+
 export function DashboardSidebar({ user }: { user: User }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -50,6 +55,7 @@ export function DashboardSidebar({ user }: { user: User }) {
   }
 
   const isSuperAdmin = user.role === 'super_admin'
+  const isAdmin = user.role === 'admin' || user.role === 'super_admin'
 
   return (
     <aside 
@@ -101,6 +107,42 @@ export function DashboardSidebar({ user }: { user: User }) {
             </Link>
           )
         })}
+
+        {/* AI Control - Visible to admins and super admins */}
+        {isAdmin && (
+          <>
+            <div 
+              className="my-4 mx-3 border-t" 
+              style={{ borderColor: 'rgba(255,255,255,0.1)' }} 
+            />
+            {aiControlNavItems.map((item) => {
+              const Icon = item.icon
+              const active = isActive(item.href)
+              
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg transition-all duration-200',
+                    active 
+                      ? 'text-white' 
+                      : 'text-[#94A3B8] hover:text-white'
+                  )}
+                  style={{
+                    height: '44px',
+                    padding: '0 14px',
+                    backgroundColor: active ? '#22C55E' : 'transparent',
+                    borderRadius: '8px',
+                  }}
+                >
+                  <Icon className="h-[18px] w-[18px]" style={{ color: active ? 'white' : '#94A3B8' }} />
+                  <span className="text-sm font-medium">{item.label}</span>
+                </Link>
+              )
+            })}
+          </>
+        )}
 
         {/* Users menu - Only visible to super admins */}
         {isSuperAdmin && (
