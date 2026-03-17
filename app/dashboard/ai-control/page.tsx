@@ -175,12 +175,30 @@ export default function AIControlPage() {
   }
 
   // Toggle active status
-  const toggleActive = async (type: string, id: number, currentStatus: boolean) => {
+  const toggleActive = async (itemType: string, id: number, currentStatus: boolean) => {
     try {
-      await fetch(`/api/ai-control/${type}/${id}`, {
+      const newStatus = !currentStatus
+      let updateData: Record<string, unknown> = {}
+      
+      switch(itemType) {
+        case 'faq':
+          updateData = { question: '', answer: '', category: '', is_active: newStatus }
+          break
+        case 'template':
+          updateData = { title: '', triggerKeywords: '', response: '', category: '', is_active: newStatus }
+          break
+        case 'filter':
+          updateData = { keyword: '', filterType: '', responseMessage: '', is_active: newStatus }
+          break
+        case 'product':
+          updateData = { title: '', description: '', category: '', price: '', is_active: newStatus }
+          break
+      }
+      
+      await fetch(`/api/ai-control/${itemType}/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ is_active: !currentStatus })
+        body: JSON.stringify(updateData)
       })
       fetchData()
     } catch (error) {
