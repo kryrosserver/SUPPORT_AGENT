@@ -205,7 +205,11 @@ export default function AIControlPage() {
         await fetch(`/api/ai-control/faq/${editingFaq.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(faqForm)
+          body: JSON.stringify({
+            question: faqForm.question,
+            answer: faqForm.answer,
+            category: faqForm.category
+          })
         })
       } else {
         await fetch('/api/ai-control', {
@@ -226,22 +230,24 @@ export default function AIControlPage() {
   // Save Template
   const saveTemplate = async () => {
     try {
+      const templateData = {
+        title: templateForm.title,
+        triggerKeywords: templateForm.triggerKeywords,
+        response: templateForm.response,
+        category: templateForm.category
+      }
+      
       if (editingTemplate) {
         await fetch(`/api/ai-control/template/${editingTemplate.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: templateForm.title,
-            trigger_keywords: templateForm.triggerKeywords,
-            response: templateForm.response,
-            category: templateForm.category
-          })
+          body: JSON.stringify(templateData)
         })
       } else {
         await fetch('/api/ai-control', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'template', data: templateForm })
+          body: JSON.stringify({ type: 'template', data: templateData })
         })
       }
       setIsTemplateDialogOpen(false)
@@ -256,17 +262,23 @@ export default function AIControlPage() {
   // Save Filter
   const saveFilter = async () => {
     try {
+      const filterData = {
+        keyword: filterForm.keyword,
+        filterType: filterForm.filterType,
+        responseMessage: filterForm.responseMessage
+      }
+      
       if (editingFilter) {
         await fetch(`/api/ai-control/filter/${editingFilter.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(filterForm)
+          body: JSON.stringify(filterData)
         })
       } else {
         await fetch('/api/ai-control', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ type: 'filter', data: filterForm })
+          body: JSON.stringify({ type: 'filter', data: filterData })
         })
       }
       setIsFilterDialogOpen(false)

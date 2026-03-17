@@ -15,61 +15,61 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only super admins and admins can modify AI control
     if (session.role !== 'super_admin' && session.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const data = await request.json()
 
-    let tableName: string
-    let updateFields: string[] = []
+    try {
+      let result
 
-    switch (type) {
-      case 'faq':
-        tableName = 'faqs'
-        if (data.question) updateFields.push(`question = '${data.question}'`)
-        if (data.answer) updateFields.push(`answer = '${data.answer}'`)
-        if (data.category) updateFields.push(`category = '${data.category}'`)
-        if (typeof data.is_active === 'boolean') updateFields.push(`is_active = ${data.is_active}`)
-        break
-      case 'template':
-        tableName = 'response_templates'
-        if (data.title) updateFields.push(`title = '${data.title}'`)
-        if (data.trigger_keywords) updateFields.push(`trigger_keywords = '${data.triggerKeywords}'`)
-        if (data.response) updateFields.push(`response = '${data.response}'`)
-        if (data.category) updateFields.push(`category = '${data.category}'`)
-        if (typeof data.is_active === 'boolean') updateFields.push(`is_active = ${data.is_active}`)
-        break
-      case 'filter':
-        tableName = 'content_filters'
-        if (data.keyword) updateFields.push(`keyword = '${data.keyword}'`)
-        if (data.filter_type) updateFields.push(`filter_type = '${data.filterType}'`)
-        if (data.response_message) updateFields.push(`response_message = '${data.responseMessage}'`)
-        if (typeof data.is_active === 'boolean') updateFields.push(`is_active = ${data.is_active}`)
-        break
-      case 'product':
-        tableName = 'product_info'
-        if (data.title) updateFields.push(`title = '${data.title}'`)
-        if (data.description) updateFields.push(`description = '${data.description}'`)
-        if (data.category) updateFields.push(`category = '${data.category}'`)
-        if (data.price) updateFields.push(`price = '${data.price}'`)
-        if (typeof data.is_active === 'boolean') updateFields.push(`is_active = ${data.is_active}`)
-        break
-      default:
-        return NextResponse.json({ error: 'Invalid type' }, { status: 400 })
+      switch (type) {
+        case 'faq':
+          result = await sql`
+            UPDATE faqs 
+            SET question = ${data.question}, answer = ${data.answer}, category = ${data.category}, updated_at = NOW()
+            WHERE id = ${id}
+            RETURNING *
+          `
+          break
+        case 'template':
+          result = await sql`
+            UPDATE response_templates 
+            SET title = ${data.title}, trigger_keywords = ${data.triggerKeywords}, response = ${data.response}, category = ${data.category}, updated_at = NOW()
+            WHERE id = ${id}
+            RETURNING *
+          `
+          break
+        case 'filter':
+          result = await sql`
+            UPDATE content_filters 
+            SET keyword = ${data.keyword}, filter_type = ${data.filterType}, response_message = ${data.responseMessage}
+            WHERE id = ${id}
+            RETURNING *
+          `
+          break
+        case 'product':
+          result = await sql`
+            UPDATE product_info 
+            SET title = ${data.title}, description = ${data.description}, category = ${data.category}, price = ${data.price}, updated_at = NOW()
+            WHERE id = ${id}
+            RETURNING *
+          `
+          break
+        default:
+          return NextResponse.json({ error: 'Invalid type' }, { status: 400 })
+      }
+
+      if (result && result.length > 0) {
+        return NextResponse.json({ success: true, data: result[0] })
+      } else {
+        return NextResponse.json({ error: 'Item not found' }, { status: 404 })
+      }
+    } catch (dbError) {
+      console.error('Database error:', dbError)
+      return NextResponse.json({ error: 'Database error' }, { status: 500 })
     }
-
-    if (updateFields.length === 0) {
-      return NextResponse.json({ error: 'No fields to update' }, { status: 400 })
-    }
-
-    updateFields.push(`updated_at = CURRENT_TIMESTAMP`)
-
-    const query = `UPDATE ${tableName} SET ${updateFields.join(', ')} WHERE id = ${id} RETURNING *`
-    const result = await sql.query(query)
-
-    return NextResponse.json({ success: true, data: result[0] })
   } catch (error) {
     console.error('Error updating AI control data:', error)
     return NextResponse.json({ error: 'Failed to update data' }, { status: 500 })
@@ -85,33 +85,39 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Only super admins and admins can delete AI control items
     if (session.role !== 'super_admin' && session.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    let tableName: string
+    try {
+      let result
 
-    switch (type) {
-      case 'faq':
-        tableName = 'faqs'
-        break
-      case 'template':
-        tableName = 'response_templates'
-        break
-      case 'filter':
-        tableName = 'content_filters'
-        break
-      case 'product':
-        tableName = 'product_info'
-        break
-      default:
-        return NextResponse.json({ error: 'Invalid type' }, { status: 400 })
+      switch (type) {
+        case 'faq':
+          result = await sql`DELETE FROM faqs WHERE id = ${id} RETURNING id`
+          break
+        case 'template':
+          result = await sql`DELETE FROM response_templates WHERE id = ${id} RETURNING id`
+          break
+        case 'filter':
+          result = await sql`DELETE FROM content_filters WHERE id = ${id} RETURNING id`
+          break
+        case 'product':
+          result = await sql`DELETE FROM product_info WHERE id = ${id} RETURNING id`
+          break
+        default:
+          return NextResponse.json({ error: 'Invalid type' }, { status: 400 })
+      }
+
+      if (result && result.length > 0) {
+        return NextResponse.json({ success: true })
+      } else {
+        return NextResponse.json({ error: 'Item not found' }, { status: 404 })
+      }
+    } catch (dbError) {
+      console.error('Database error:', dbError)
+      return NextResponse.json({ error: 'Database error' }, { status: 500 })
     }
-
-    await sql`DELETE FROM ${sql(tableName)} WHERE id = ${id}`
-
-    return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting AI control data:', error)
     return NextResponse.json({ error: 'Failed to delete data' }, { status: 500 })
