@@ -185,7 +185,7 @@ async function handleIncomingMessage(msg: any) {
         await sock.sendMessage(senderId, { text: "I've notified a human agent to help you. One moment please." })
         await sql`INSERT INTO messages (conversation_id, sender, content) VALUES (${conversationId}, 'ai', "I've notified a human agent to help you. One moment please.")`
       } else {
-        const response = await getAIResponse(text, conversationId)
+        const response = await getAIResponse(text, conversationId, senderId)
         await sock.sendMessage(senderId, { text: response })
         await sql`INSERT INTO messages (conversation_id, sender, content) VALUES (${conversationId}, 'ai', ${response})`
       }
@@ -266,7 +266,7 @@ async function loadExistingChats() {
   }
 }
 
-async function getAIResponse(userMessage: string, conversationId: number): Promise<string> {
+async function getAIResponse(userMessage: string, conversationId: number, senderId?: string): Promise<string> {
   try {
     // 1. Get system prompt and AI enabled status
     const settings = await sql`SELECT key, value FROM settings WHERE key IN ('ai_enabled', 'ai_system_prompt')`
@@ -275,7 +275,57 @@ async function getAIResponse(userMessage: string, conversationId: number): Promi
 
     if (!aiEnabled) return "AI is currently disabled."
 
-    // 2. Get recent message history for context
+    // 2. Check Content Filters first
+    const filters = await sql`SELECT * FROM content_filters WHERE is_active = true`
+    for (const filter of filters) {
+      if (userMessage.toLowerCase().includes(filter.keyword.toLowerCase())) {
+        if (filter.filter_type === 'block') {
+          // Don't respond to blocked topics
+          continue
+        } else if (filter.filter_type === 'warning') {
+          // Send warning but continue
+          return filter.response_message || "I can't help with that."
+        } else if (filter.filter_type === 'escalate') {
+          // Escalate to human
+          if (conversationId) {
+            await sql`UPDATE conversations SET status = 'HUMAN' WHERE id = ${conversationId}`
+          }
+          return filter.response_message || "I've notified a human agent to help you."
+        }
+      }
+    }
+
+    // 3. Check Response Templates (keyword triggers)
+    const templates = await sql`SELECT * FROM response_templates WHERE is_active = true`
+    for (const template of templates) {
+      const keywords = template.trigger_keywords.split(',').map((k: string) => k.trim().toLowerCase())
+      if (keywords.some((k: string) => userMessage.toLowerCase().includes(k))) {
+        return template.response
+      }
+    }
+
+    // 4. Check FAQs for matching questions
+    const faqs = await sql`SELECT * FROM faqs WHERE is_active = true`
+    for (const faq of faqs) {
+      // Simple keyword matching in question
+      const questionWords = faq.question.toLowerCase().split(' ')
+      if (questionWords.some((word: string) => word.length > 3 && userMessage.toLowerCase().includes(word))) {
+        return faq.answer
+      }
+    }
+
+    // 5. Get product info if relevant
+    const products = await sql`SELECT * FROM product_info WHERE is_active = true`
+    let productInfo = ''
+    for (const product of products) {
+      if (userMessage.toLowerCase().includes(product.title.toLowerCase()) || 
+          userMessage.toLowerCase().includes(product.category.toLowerCase())) {
+        productInfo += `\n\n${product.title}: ${product.description}${product.price ? ` - ${product.price}` : ''}`
+      }
+    }
+
+    // 6. If no match from our data, use OpenAI
+    // Get recent message history for context
     const history = await sql`
       SELECT sender, content 
       FROM messages 
@@ -284,15 +334,37 @@ async function getAIResponse(userMessage: string, conversationId: number): Promi
       LIMIT 10
     `
     
+    // Build context from our knowledge base
+    let knowledgeContext = ''
+    
+    // Add FAQs to context
+    if (faqs.length > 0) {
+      knowledgeContext += '\n\nFAQs:\n'
+      faqs.forEach((faq: any) => {
+        knowledgeContext += `Q: ${faq.question}\nA: ${faq.answer}\n`
+      })
+    }
+    
+    // Add products to context
+    if (products.length > 0) {
+      knowledgeContext += '\nProducts/Services:\n'
+      products.forEach((product: any) => {
+        knowledgeContext += `- ${product.title}: ${product.description}${product.price ? ` (${product.price})` : ''}\n`
+      })
+    }
+
+    // Enhanced system prompt with our knowledge base
+    const enhancedSystemPrompt = systemPrompt + knowledgeContext
+
     const messages: any[] = [
-      { role: 'system', content: systemPrompt },
+      { role: 'system', content: enhancedSystemPrompt },
       ...history.reverse().map((m: any) => ({
         role: m.sender === 'customer' ? 'user' : 'assistant',
         content: m.content
       }))
     ]
 
-    // 3. Call OpenAI
+    // 7. Call OpenAI with enhanced context
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: messages,
