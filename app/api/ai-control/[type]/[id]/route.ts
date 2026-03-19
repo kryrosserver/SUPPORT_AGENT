@@ -28,7 +28,11 @@ export async function PUT(request: Request, { params }: RouteParams) {
         case 'faq':
           result = await sql`
             UPDATE faqs 
-            SET question = ${data.question}, answer = ${data.answer}, category = ${data.category}, updated_at = NOW()
+            SET question = COALESCE(NULLIF(${data.question}, ''), question), 
+                answer = COALESCE(NULLIF(${data.answer}, ''), answer), 
+                category = COALESCE(NULLIF(${data.category}, ''), category), 
+                is_active = ${data.is_active},
+                updated_at = NOW()
             WHERE id = ${id}
             RETURNING *
           `
@@ -36,7 +40,12 @@ export async function PUT(request: Request, { params }: RouteParams) {
         case 'template':
           result = await sql`
             UPDATE response_templates 
-            SET title = ${data.title}, trigger_keywords = ${data.triggerKeywords}, response = ${data.response}, category = ${data.category}, updated_at = NOW()
+            SET title = COALESCE(NULLIF(${data.title}, ''), title), 
+                trigger_keywords = COALESCE(NULLIF(${data.triggerKeywords}, ''), trigger_keywords), 
+                response = COALESCE(NULLIF(${data.response}, ''), response), 
+                category = COALESCE(NULLIF(${data.category}, ''), category), 
+                is_active = ${data.is_active},
+                updated_at = NOW()
             WHERE id = ${id}
             RETURNING *
           `
@@ -44,7 +53,10 @@ export async function PUT(request: Request, { params }: RouteParams) {
         case 'filter':
           result = await sql`
             UPDATE content_filters 
-            SET keyword = ${data.keyword}, filter_type = ${data.filterType}, response_message = ${data.responseMessage}
+            SET keyword = COALESCE(NULLIF(${data.keyword}, ''), keyword), 
+                filter_type = COALESCE(NULLIF(${data.filterType}, ''), filter_type), 
+                response_message = COALESCE(NULLIF(${data.responseMessage}, ''), response_message), 
+                is_active = ${data.is_active}
             WHERE id = ${id}
             RETURNING *
           `
@@ -52,7 +64,12 @@ export async function PUT(request: Request, { params }: RouteParams) {
         case 'product':
           result = await sql`
             UPDATE product_info 
-            SET title = ${data.title}, description = ${data.description}, category = ${data.category}, price = ${data.price}, updated_at = NOW()
+            SET title = COALESCE(NULLIF(${data.title}, ''), title), 
+                description = COALESCE(NULLIF(${data.description}, ''), description), 
+                category = COALESCE(NULLIF(${data.category}, ''), category), 
+                price = COALESCE(NULLIF(${data.price}, ''), price), 
+                is_active = ${data.is_active},
+                updated_at = NOW()
             WHERE id = ${id}
             RETURNING *
           `
