@@ -44,8 +44,10 @@ import {
   Package,
   HelpCircle,
   ToggleLeft,
-  ToggleRight
+  ToggleRight,
+  Settings
 } from 'lucide-react'
+import { AIConfigClient } from '@/components/dashboard/ai-config-client'
 
 interface FAQ {
   id: number
@@ -103,6 +105,13 @@ export default function AIControlPage() {
   const [filters, setFilters] = useState<Filter[]>([])
   const [products, setProducts] = useState<Product[]>([])
   
+  // AI Settings state
+  const [aiSettings, setAiSettings] = useState<{
+    ai_enabled: boolean
+    ai_system_prompt: string
+    human_takeover_keywords: string
+  } | null>(null)
+  
   // Dialog states
   const [isFaqDialogOpen, setIsFaqDialogOpen] = useState(false)
   const [isTemplateDialogOpen, setIsTemplateDialogOpen] = useState(false)
@@ -145,23 +154,34 @@ export default function AIControlPage() {
 
   const fetchData = async () => {
     try {
-      const [faqsRes, templatesRes, filtersRes, productsRes] = await Promise.all([
+      const [faqsRes, templatesRes, filtersRes, productsRes, settingsRes] = await Promise.all([
         fetch('/api/ai-control?type=faqs'),
         fetch('/api/ai-control?type=templates'),
         fetch('/api/ai-control?type=filters'),
         fetch('/api/ai-control?type=products'),
+        fetch('/api/settings'),
       ])
 
       const faqsData = await faqsRes.json()
       const templatesData = await templatesRes.json()
       const filtersData = await filtersRes.json()
       const productsData = await productsRes.json()
+      const settingsData = await settingsRes.json()
 
       // Handle cases where tables might not exist
       setFaqs(Array.isArray(faqsData) ? faqsData : [])
       setTemplates(Array.isArray(templatesData) ? templatesData : [])
       setFilters(Array.isArray(filtersData) ? filtersData : [])
       setProducts(Array.isArray(productsData) ? productsData : [])
+      
+      // Set AI settings
+      if (settingsData) {
+        setAiSettings({
+          ai_enabled: settingsData.ai_enabled ?? true,
+          ai_system_prompt: settingsData.ai_system_prompt ?? '',
+          human_takeover_keywords: settingsData.human_takeover_keywords ?? 'human,agent,support,help'
+        })
+      }
     } catch (error) {
       console.error('Failed to fetch data:', error)
       // Set empty arrays on error
@@ -399,8 +419,16 @@ export default function AIControlPage() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="faqs" className="w-full">
-        <TabsList className="mb-6 bg-white p-1 rounded-lg" style={{ border: '1px solid #E5E7EB' }}>
+      <Tabs defaultValue="config" className="w-full">
+        <TabsList className="mb-6 bg-white p-1 rounded-lg flex flex-wrap" style={{ border: '1px solid #E5E7EB' }}>
+          <TabsTrigger 
+            value="config"
+            className="data-[state=active]:bg-green-500 data-[state=active]:text-white"
+            style={{ borderRadius: '6px' }}
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Configuration
+          </TabsTrigger>
           <TabsTrigger 
             value="faqs"
             className="data-[state=active]:bg-green-500 data-[state=active]:text-white"
@@ -434,6 +462,17 @@ export default function AIControlPage() {
             Products ({products.length})
           </TabsTrigger>
         </TabsList>
+
+        {/* Configuration Tab */}
+        <TabsContent value="config">
+          {aiSettings ? (
+            <AIConfigClient initialSettings={aiSettings} />
+          ) : (
+            <div className="flex items-center justify-center p-12">
+              <Spinner />
+            </div>
+          )}
+        </TabsContent>
 
         {/* FAQs Tab */}
         <TabsContent value="faqs">
