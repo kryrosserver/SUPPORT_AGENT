@@ -1,4 +1,5 @@
 import { sql } from '@/lib/db'
+import { getSession } from '@/lib/auth'
 import {
   Table,
   TableBody,
@@ -10,25 +11,53 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { User } from 'lucide-react'
 
-async function getContacts() {
-  const contacts = await sql`
-    SELECT 
-      ct.id, 
-      ct.phone, 
-      ct.name, 
-      ct.created_at,
-      c.last_message,
-      c.updated_at as last_activity,
-      c.status
-    FROM contacts ct
-    LEFT JOIN conversations c ON ct.id = c.contact_id
-    ORDER BY c.updated_at DESC NULLS LAST, ct.created_at DESC
-  `
-  return contacts
+async function getContacts(userId: number, isSuperAdmin: boolean) {
+  if (isSuperAdmin) {
+    // Super admin sees all contacts
+    const contacts = await sql`
+      SELECT 
+        ct.id, 
+        ct.phone, 
+        ct.name, 
+        ct.created_at,
+        ct.user_id,
+        c.last_message,
+        c.updated_at as last_activity,
+        c.status
+      FROM contacts ct
+      LEFT JOIN conversations c ON ct.id = c.contact_id
+      ORDER BY c.updated_at DESC NULLS LAST, ct.created_at DESC
+    `
+    return contacts
+  } else {
+    // Regular users see only their contacts
+    const contacts = await sql`
+      SELECT 
+        ct.id, 
+        ct.phone, 
+        ct.name, 
+        ct.created_at,
+        c.last_message,
+        c.updated_at as last_activity,
+        c.status
+      FROM contacts ct
+      LEFT JOIN conversations c ON ct.id = c.contact_id
+      WHERE ct.user_id = ${userId}
+      ORDER BY c.updated_at DESC NULLS LAST, ct.created_at DESC
+    `
+    return contacts
+  }
 }
 
 export default async function ContactsPage() {
-  const contacts = await getContacts()
+  const session = await getSession()
+  
+  if (!session) {
+    return <div>Please log in</div>
+  }
+
+  const isSuperAdmin = session.role === 'super_admin'
+  const contacts = await getContacts(session.id, isSuperAdmin)
 
   return (
     <div>
@@ -130,6 +159,14 @@ export default async function ContactsPage() {
                   >
                     Status
                   </TableHead>
+                  {isSuperAdmin && (
+                    <TableHead 
+                      className="font-semibold"
+                      style={{ color: '#111827' }}
+                    >
+                      User
+                    </TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -176,6 +213,11 @@ export default async function ContactsPage() {
                         '-'
                       )}
                     </TableCell>
+                    {isSuperAdmin && (
+                      <TableCell style={{ color: '#6B7280' }}>
+                        User #{contact.user_id}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>

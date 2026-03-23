@@ -1,38 +1,76 @@
 import { sql } from '@/lib/db'
+import { getSession } from '@/lib/auth'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { MessageSquare, Users, Bot, UserCheck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-async function getStats() {
-  const [conversations, contacts, aiConversations, humanConversations] = await Promise.all([
-    sql`SELECT COUNT(*) as count FROM conversations`,
-    sql`SELECT COUNT(*) as count FROM contacts`,
-    sql`SELECT COUNT(*) as count FROM conversations WHERE status = 'AI'`,
-    sql`SELECT COUNT(*) as count FROM conversations WHERE status = 'HUMAN'`,
-  ])
+async function getStats(userId: number, isSuperAdmin: boolean) {
+  if (isSuperAdmin) {
+    // Super admin sees all data
+    const [conversations, contacts, aiConversations, humanConversations] = await Promise.all([
+      sql`SELECT COUNT(*) as count FROM conversations`,
+      sql`SELECT COUNT(*) as count FROM contacts`,
+      sql`SELECT COUNT(*) as count FROM conversations WHERE status = 'AI'`,
+      sql`SELECT COUNT(*) as count FROM conversations WHERE status = 'HUMAN'`,
+    ])
 
-  return {
-    totalConversations: Number(conversations[0]?.count || 0),
-    totalContacts: Number(contacts[0]?.count || 0),
-    aiHandled: Number(aiConversations[0]?.count || 0),
-    humanHandled: Number(humanConversations[0]?.count || 0),
+    return {
+      totalConversations: Number(conversations[0]?.count || 0),
+      totalContacts: Number(contacts[0]?.count || 0),
+      aiHandled: Number(aiConversations[0]?.count || 0),
+      humanHandled: Number(humanConversations[0]?.count || 0),
+    }
+  } else {
+    // Regular users see only their data
+    const [conversations, contacts, aiConversations, humanConversations] = await Promise.all([
+      sql`SELECT COUNT(*) as count FROM conversations WHERE user_id = ${userId}`,
+      sql`SELECT COUNT(*) as count FROM contacts WHERE user_id = ${userId}`,
+      sql`SELECT COUNT(*) as count FROM conversations WHERE user_id = ${userId} AND status = 'AI'`,
+      sql`SELECT COUNT(*) as count FROM conversations WHERE user_id = ${userId} AND status = 'HUMAN'`,
+    ])
+
+    return {
+      totalConversations: Number(conversations[0]?.count || 0),
+      totalContacts: Number(contacts[0]?.count || 0),
+      aiHandled: Number(aiConversations[0]?.count || 0),
+      humanHandled: Number(humanConversations[0]?.count || 0),
+    }
   }
 }
 
-async function getRecentConversations() {
-  const conversations = await sql`
-    SELECT c.id, c.status, c.last_message, c.updated_at, ct.name, ct.phone
-    FROM conversations c
-    JOIN contacts ct ON c.contact_id = ct.id
-    ORDER BY c.updated_at DESC
-    LIMIT 5
-  `
-  return conversations
+async function getRecentConversations(userId: number, isSuperAdmin: boolean) {
+  if (isSuperAdmin) {
+    const conversations = await sql`
+      SELECT c.id, c.status, c.last_message, c.updated_at, ct.name, ct.phone, c.user_id
+      FROM conversations c
+      JOIN contacts ct ON c.contact_id = ct.id
+      ORDER BY c.updated_at DESC
+      LIMIT 5
+    `
+    return conversations
+  } else {
+    const conversations = await sql`
+      SELECT c.id, c.status, c.last_message, c.updated_at, ct.name, ct.phone
+      FROM conversations c
+      JOIN contacts ct ON c.contact_id = ct.id
+      WHERE c.user_id = ${userId}
+      ORDER BY c.updated_at DESC
+      LIMIT 5
+    `
+    return conversations
+  }
 }
 
 export default async function DashboardPage() {
-  const stats = await getStats()
-  const recentConversations = await getRecentConversations()
+  const session = await getSession()
+  
+  if (!session) {
+    return <div>Please log in</div>
+  }
+
+  const isSuperAdmin = session.role === 'super_admin'
+  const stats = await getStats(session.id, isSuperAdmin)
+  const recentConversations = await getRecentConversations(session.id, isSuperAdmin)
 
   return (
     <div>
@@ -48,7 +86,10 @@ export default async function DashboardPage() {
           className="mt-1 text-sm"
           style={{ color: '#6B7280' }}
         >
-          Welcome to KRYROS Support Dashboard
+          {isSuperAdmin 
+            ? 'Welcome to KRYROS Support Dashboard - All Users' 
+            : 'Welcome to your Support Dashboard'
+          }
         </p>
       </div>
 
@@ -81,20 +122,11 @@ export default async function DashboardPage() {
             />
           </div>
           <div 
-            className="font-bold"
-            style={{ 
-              fontSize: '28px',
-              color: '#111827'
-            }}
+            className="text-3xl font-bold"
+            style={{ color: '#111827' }}
           >
             {stats.totalConversations}
           </div>
-          <p 
-            className="text-xs mt-1"
-            style={{ color: '#6B7280' }}
-          >
-            All customer chats
-          </p>
         </div>
 
         {/* Total Contacts */}
@@ -119,20 +151,11 @@ export default async function DashboardPage() {
             />
           </div>
           <div 
-            className="font-bold"
-            style={{ 
-              fontSize: '28px',
-              color: '#111827'
-            }}
+            className="text-3xl font-bold"
+            style={{ color: '#111827' }}
           >
             {stats.totalContacts}
           </div>
-          <p 
-            className="text-xs mt-1"
-            style={{ color: '#6B7280' }}
-          >
-            Unique customers
-          </p>
         </div>
 
         {/* AI Handled */}
@@ -153,24 +176,15 @@ export default async function DashboardPage() {
             </span>
             <Bot 
               className="h-5 w-5" 
-              style={{ color: '#6B7280' }} 
+              style={{ color: '#22C55E' }} 
             />
           </div>
           <div 
-            className="font-bold"
-            style={{ 
-              fontSize: '28px',
-              color: '#111827'
-            }}
+            className="text-3xl font-bold"
+            style={{ color: '#22C55E' }}
           >
             {stats.aiHandled}
           </div>
-          <p 
-            className="text-xs mt-1"
-            style={{ color: '#6B7280' }}
-          >
-            Automated responses
-          </p>
         </div>
 
         {/* Human Handled */}
@@ -191,28 +205,19 @@ export default async function DashboardPage() {
             </span>
             <UserCheck 
               className="h-5 w-5" 
-              style={{ color: '#6B7280' }} 
+              style={{ color: '#3B82F6' }} 
             />
           </div>
           <div 
-            className="font-bold"
-            style={{ 
-              fontSize: '28px',
-              color: '#111827'
-            }}
+            className="text-3xl font-bold"
+            style={{ color: '#3B82F6' }}
           >
             {stats.humanHandled}
           </div>
-          <p 
-            className="text-xs mt-1"
-            style={{ color: '#6B7280' }}
-          >
-            Agent responses
-          </p>
         </div>
       </div>
 
-      {/* Recent Conversations Card */}
+      {/* Recent Conversations */}
       <div 
         className="bg-white"
         style={{ 
@@ -221,67 +226,58 @@ export default async function DashboardPage() {
           boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
         }}
       >
-        <div className="mb-6">
-          <h2 
-            className="text-lg font-semibold"
-            style={{ color: '#111827' }}
-          >
-            Recent Conversations
-          </h2>
-          <p 
-            className="text-sm mt-1"
-            style={{ color: '#6B7280' }}
-          >
-            Latest customer interactions
-          </p>
-        </div>
-
+        <h2 
+          className="text-lg font-semibold mb-6"
+          style={{ color: '#111827' }}
+        >
+          Recent Conversations
+        </h2>
+        
         {recentConversations.length === 0 ? (
-          <div className="text-center py-8">
-            <p style={{ color: '#6B7280' }}>
-              No conversations yet. Connect WhatsApp to start receiving messages.
-            </p>
-          </div>
+          <p style={{ color: '#6B7280' }}>No conversations yet. Connect WhatsApp to start receiving messages.</p>
         ) : (
           <div className="space-y-4">
-            {recentConversations.map((conv) => (
-              <div
+            {recentConversations.map((conv: any) => (
+              <div 
                 key={conv.id}
-                className="flex items-center justify-between pb-4 last:border-0"
+                className="flex items-center justify-between p-4"
                 style={{ 
-                  borderBottom: '1px solid #E5E7EB',
-                  paddingBottom: '16px'
+                  backgroundColor: '#F9FAFB',
+                  borderRadius: '8px',
+                  border: '1px solid #E5E7EB'
                 }}
               >
-                <div className="flex-1 min-w-0">
-                  <p 
-                    className="font-medium truncate"
-                    style={{ color: '#111827' }}
+                <div className="flex items-center gap-4">
+                  <div 
+                    className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center",
+                      conv.status === 'AI' ? "bg-green-100" : "bg-blue-100"
+                    )}
                   >
-                    {conv.name || conv.phone}
-                  </p>
-                  <p 
-                    className="text-sm truncate mt-1"
-                    style={{ color: '#6B7280' }}
-                  >
-                    {conv.last_message || 'No messages'}
-                  </p>
+                    {conv.status === 'AI' ? (
+                      <Bot className="h-5 w-5" style={{ color: '#22C55E' }} />
+                    ) : (
+                      <UserCheck className="h-5 w-5" style={{ color: '#3B82F6' }} />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium" style={{ color: '#111827' }}>
+                      {conv.name || 'Unknown'}
+                    </p>
+                    <p className="text-sm" style={{ color: '#6B7280' }}>
+                      {conv.phone}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 ml-4">
-                  <span
-                    className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium"
-                    style={{
-                      backgroundColor: conv.status === 'AI' ? '#DBEAFE' : '#DCFCE7',
-                      color: conv.status === 'AI' ? '#1E40AF' : '#166534'
-                    }}
-                  >
-                    {conv.status}
-                  </span>
+                <div className="text-right">
                   <p 
-                    className="text-xs whitespace-nowrap"
-                    style={{ color: '#6B7280' }}
+                    className="text-sm font-medium"
+                    style={{ color: conv.status === 'AI' ? '#22C55E' : '#3B82F6' }}
                   >
-                    {new Date(conv.updated_at).toLocaleDateString()}
+                    {conv.status === 'AI' ? 'AI Mode' : 'Human Mode'}
+                  </p>
+                  <p className="text-xs" style={{ color: '#6B7280' }}>
+                    {conv.last_message?.substring(0, 30) || 'No messages'}...
                   </p>
                 </div>
               </div>
