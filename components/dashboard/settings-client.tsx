@@ -4,19 +4,41 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Spinner } from '@/components/ui/spinner'
-import { Building2, Save, CheckCircle } from 'lucide-react'
+import { Building2, Save, CheckCircle, Users } from 'lucide-react'
 
 interface Settings {
-  id?: number
   company_name: string
   support_phone: string
   support_email: string
 }
 
-export function SettingsClient({ initialSettings }: { initialSettings: Settings }) {
-  const [settings, setSettings] = useState<Settings>(initialSettings)
+interface SuperAdminSettings {
+  type: 'super_admin'
+  settings: Record<number, Settings>
+}
+
+interface UserSettings {
+  type: 'user'
+  settings: Settings
+}
+
+type SettingsData = SuperAdminSettings | UserSettings
+
+export function SettingsClient({ initialData, isSuperAdmin }: { initialData: SettingsData; isSuperAdmin: boolean }) {
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
+  const [settings, setSettings] = useState<Settings>(
+    initialData.type === 'user' 
+      ? initialData.settings 
+      : (initialData.type === 'super_admin' && Object.keys(initialData.settings).length > 0 
+          ? initialData.settings[Number(Object.keys(initialData.settings)[0])]
+          : { company_name: '', support_phone: '', support_email: '' })
+  )
   const [isSaving, setIsSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+
+  // For super admin, get list of users
+  const allUserSettings = initialData.type === 'super_admin' ? initialData.settings : {}
+  const userIds = Object.keys(allUserSettings).map(Number)
 
   const handleSave = async () => {
     setIsSaving(true)
@@ -37,6 +59,11 @@ export function SettingsClient({ initialSettings }: { initialSettings: Settings 
     setIsSaving(false)
   }
 
+  const handleUserSelect = (userId: number) => {
+    setSelectedUserId(userId)
+    setSettings(allUserSettings[userId])
+  }
+
   return (
     <div>
       {/* Page Header */}
@@ -52,7 +79,10 @@ export function SettingsClient({ initialSettings }: { initialSettings: Settings 
             className="mt-1 text-sm"
             style={{ color: '#6B7280' }}
           >
-            Configure your company information
+            {isSuperAdmin 
+              ? 'Configure company information for all users' 
+              : 'Configure your company information'
+            }
           </p>
         </div>
         <Button 
@@ -83,6 +113,35 @@ export function SettingsClient({ initialSettings }: { initialSettings: Settings 
           )}
         </Button>
       </div>
+
+      {/* Super Admin: User Selector */}
+      {isSuperAdmin && userIds.length > 1 && (
+        <div className="mb-6">
+          <label 
+            className="text-sm font-medium mb-2 block"
+            style={{ color: '#111827' }}
+          >
+            Select User/Company
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {userIds.map(userId => (
+              <Button
+                key={userId}
+                variant={selectedUserId === userId || (selectedUserId === null && userId === userIds[0]) ? 'default' : 'outline'}
+                onClick={() => handleUserSelect(userId)}
+                style={{
+                  backgroundColor: selectedUserId === userId || (selectedUserId === null && userId === userIds[0]) ? '#22C55E' : 'transparent',
+                  color: selectedUserId === userId || (selectedUserId === null && userId === userIds[0]) ? 'white' : '#6B7280',
+                  border: '1px solid #E5E7EB'
+                }}
+              >
+                <Users className="mr-2 h-4 w-4" />
+                User #{userId}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Settings Cards */}
       <div className="space-y-6">
