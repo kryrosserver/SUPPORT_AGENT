@@ -35,4 +35,10 @@ export default async function InboxPage() {
   const isSuperAdmin = session.role === 'super_admin'
   const conversations = await getConversations(session.id, isSuperAdmin)
 
-  return <InboxClient initialConversations={conversations} isSuperAdmin={isSuperAdmin} />
+  return (
+    <InboxClient 
+      initialConversations={conversations} 
+      isSuperAdmin={isSuperAdmin} 
+    />
+  )
+}
